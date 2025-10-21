@@ -1,18 +1,5 @@
 ---
-layout: post
-title:  "How To Choose A Budget Smartphone Under 300"
-date:   2023-10-21 15:00:00 +0000
-permalink: /:title/
-categories:
-  - Smartphones
-tags:
-  - smartphone
-  - guide
-  - 2025
-  - tech
-read_time: true
-comments: true
-toc: true
+title: "How To Choose A Budget Smartphone Under 300"
 ---
 
 # How To Choose A Budget Smartphone Under 300
@@ -28,9 +15,9 @@ I used to think more megapixels = better photos. WRONG!
 My $250 Samsung took sharper sunset pics than my friend's $800 iPhone. Why? **Software matters more than hardware.**
 
 **What to check:**
-- **Photo samples** on YouTube (search "[phone model] camera test")
-- **Night mode performance**
-- **Video stabilization** (super important for kids/pets)
+- Photo samples on YouTube (search "[phone model] camera test")
+- Night mode performance
+- Video stabilization (super important for kids/pets)
 
 **Pro tip:** Download the phone's camera app from Play Store and test it in-store!
 
