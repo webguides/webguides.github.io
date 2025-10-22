@@ -111,3 +111,10 @@ category_archive:
 tag_archive:
   type: liquid
   path: /tags/
+
+# Table of Contents
+toc:
+  enabled:          true      # ← ENABLED BY DEFAULT!
+  position:         right
+  hierarchy:        true
+  print:            false
