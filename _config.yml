@@ -13,8 +13,8 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: MM
-email:
+title: WEBGUIDE
+email: 
 description: >- # this means to ignore newlines until "baseurl:"
   At WebGuides, we make tech simple. From troubleshooting gadgets to mastering apps and web tools, our step-by-step guides turn confusing tasks into easy wins. No jargon, no fluff—just practical tips that help you learn, solve problems, and feel confident with technology.
 twitter_username: username
