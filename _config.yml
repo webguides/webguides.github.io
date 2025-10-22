@@ -56,7 +56,7 @@ plugins:
   - jekyll-include-cache
 
 author:
-  name   : "First Lastname"
+  name   : "Roman Davis"
   avatar : "/assets/images/bio-photo.jpg"
   bio    : "WebGuides makes tech easy with clear, step-by-step guides—practical tips to solve problems, learn new skills, and feel confident without any jargon."
   links:
