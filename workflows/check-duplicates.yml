@@ -1,0 +1,204 @@
+name: Check Duplicate Post Titles
+
+on:
+  push:
+    paths:
+      - '_posts/**'
+  pull_request:
+    paths:
+      - '_posts/**'
+  workflow_dispatch:
+
+jobs:
+  check-duplicates:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Create duplicate checker script
+        run: |
+          cat > check_duplicates.py << 'EOF'
+          #!/usr/bin/env python3
+          import os
+          import re
+          from pathlib import Path
+          from datetime import datetime
+          import yaml
+          import sys
+
+          def extract_front_matter(file_path):
+              with open(file_path, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+              if match:
+                  try:
+                      return yaml.safe_load(match.group(1))
+                  except yaml.YAMLError as e:
+                      print(f"Error parsing YAML in {file_path}: {e}")
+                      return None
+              return None
+
+          def get_post_date_from_filename(filename):
+              match = re.match(r'^(\d{4}-\d{2}-\d{2})', filename)
+              if match:
+                  return datetime.strptime(match.group(1), '%Y-%m-%d')
+              return None
+
+          def find_duplicate_titles(posts_dir='_posts'):
+              posts_dir = Path(posts_dir)
+              if not posts_dir.exists():
+                  print(f"Directory {posts_dir} not found!")
+                  return {}
+              
+              title_map = {}
+              for file_path in posts_dir.glob('*.md'):
+                  front_matter = extract_front_matter(file_path)
+                  if front_matter and 'title' in front_matter:
+                      title = front_matter['title'].strip().lower()
+                      file_date = get_post_date_from_filename(file_path.name)
+                      if title not in title_map:
+                          title_map[title] = []
+                      title_map[title].append({
+                          'path': file_path,
+                          'date': file_date,
+                          'original_title': front_matter['title']
+                      })
+              
+              return {k: v for k, v in title_map.items() if len(v) > 1}
+
+          def main():
+              duplicates = find_duplicate_titles()
+              
+              if not duplicates:
+                  print("✅ No duplicate titles found! All posts have unique titles.")
+                  return 0
+              
+              print(f"❌ Found {len(duplicates)} duplicate title(s):\n")
+              
+              for title, posts in duplicates.items():
+                  print(f"📝 Title: '{posts[0]['original_title']}'")
+                  posts_sorted = sorted(posts, key=lambda x: x['date'] or datetime.min, reverse=True)
+                  for i, post in enumerate(posts_sorted):
+                      status = "KEEP (most recent)" if i == 0 else "DUPLICATE"
+                      print(f"   {'✓' if i == 0 else '✗'} {status}: {post['path'].name} ({post['date']})")
+                  print()
+              
+              print("\n⚠️  Please remove or rename the duplicate posts before merging.")
+              return 1
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          EOF
+
+      - name: Check for duplicate titles
+        run: |
+          python3 check_duplicates.py
+
+      - name: Auto-delete duplicates (keep most recent)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          cat > remove_duplicates.py << 'EOF'
+          #!/usr/bin/env python3
+          import os
+          import re
+          from pathlib import Path
+          from datetime import datetime
+          import yaml
+          import sys
+
+          def extract_front_matter(file_path):
+              with open(file_path, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+              if match:
+                  try:
+                      return yaml.safe_load(match.group(1))
+                  except yaml.YAMLError as e:
+                      print(f"Error parsing YAML in {file_path}: {e}")
+                      return None
+              return None
+
+          def get_post_date_from_filename(filename):
+              match = re.match(r'^(\d{4}-\d{2}-\d{2})', filename)
+              if match:
+                  return datetime.strptime(match.group(1), '%Y-%m-%d')
+              return None
+
+          def find_duplicate_titles(posts_dir='_posts'):
+              posts_dir = Path(posts_dir)
+              if not posts_dir.exists():
+                  return {}
+              
+              title_map = {}
+              for file_path in posts_dir.glob('*.md'):
+                  front_matter = extract_front_matter(file_path)
+                  if front_matter and 'title' in front_matter:
+                      title = front_matter['title'].strip().lower()
+                      file_date = get_post_date_from_filename(file_path.name)
+                      if title not in title_map:
+                          title_map[title] = []
+                      title_map[title].append({
+                          'path': file_path,
+                          'date': file_date,
+                          'original_title': front_matter['title']
+                      })
+              
+              return {k: v for k, v in title_map.items() if len(v) > 1}
+
+          def remove_duplicates():
+              duplicates = find_duplicate_titles()
+              
+              if not duplicates:
+                  print("No duplicates to remove.")
+                  return False
+              
+              files_deleted = []
+              for title, posts in duplicates.items():
+                  posts_sorted = sorted(posts, key=lambda x: x['date'] or datetime.min, reverse=True)
+                  keep = posts_sorted[0]
+                  to_delete = posts_sorted[1:]
+                  
+                  print(f"\nTitle: '{posts[0]['original_title']}'")
+                  print(f"  ✓ KEEPING: {keep['path'].name}")
+                  
+                  for post in to_delete:
+                      print(f"  ✗ DELETING: {post['path'].name}")
+                      try:
+                          os.remove(post['path'])
+                          files_deleted.append(post['path'].name)
+                      except Exception as e:
+                          print(f"    Error: {e}")
+              
+              return files_deleted
+
+          if __name__ == "__main__":
+              deleted = remove_duplicates()
+              if deleted:
+                  print(f"\n🗑️  Deleted {len(deleted)} duplicate post(s)")
+                  for f in deleted:
+                      print(f"  - {f}")
+          EOF
+          
+          python3 remove_duplicates.py
+
+      - name: Commit and push if duplicates were removed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --staged --quiet || git commit -m "🤖 Auto-remove duplicate post titles [skip ci]"
+          git push
