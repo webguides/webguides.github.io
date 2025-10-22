@@ -54,7 +54,6 @@ plugins:
   - jekyll-feed
   - jemoji
   - jekyll-include-cache
-  - jekyll-minifier
 
 author:
   name   : "Roman Davis"
