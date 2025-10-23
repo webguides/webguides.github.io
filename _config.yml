@@ -17,6 +17,8 @@ title: WEBGUIDE
 email: 
 description: >- # this means to ignore newlines until "baseurl:"
  WebGuides makes tech simple with step-by-step guides that help you solve problems and feel confident—no jargon.
+url: "https://webguides.github.io"
+baseurl: ""
 twitter_username: username
 github_username: username
 minimal_mistakes_skin: default
