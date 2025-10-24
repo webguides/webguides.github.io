@@ -1,8 +1,6 @@
 # Allow all search engines to crawl everything
 User-agent: *
-Disallow:
-
-# Primary sitemaps
+Allow: /
 Sitemap: https://webguides.github.io/sitemap.xml
 Sitemap: https://webguides.github.io/feed
 Sitemap: https://webguides.github.io/feed.xml
