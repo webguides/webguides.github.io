@@ -1,0 +1,36 @@
+name: Daily Blog Posts
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # Runs every day at 12:00 UTC (7 AM EST / 5 PM IST)
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install Cerebras
+      run: pip install cerebras-cloud-sdk
+
+    - name: Run generator (1 hour max)
+      env:
+        CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+      run: python py.py
+
+    - name: Commit & Push new posts
+      run: |
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+        git add _posts used_keywords.txt
+        git diff --quiet && echo "No changes" || git commit -m "New posts $(date +%Y-%m-%d)"
+        git push
