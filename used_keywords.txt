@@ -1,1 +1,4 @@
 
+laptop won’t boot after update
+laptop screen stays black after logo
+laptop keeps crashing randomly
